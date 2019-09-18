@@ -1,9 +1,14 @@
 # d0wn
 d0wn - Docker OWN Server
 
-A personnal docker server
+A personnal docker managed server w/SSL | Let's encrypt
 
-This project allow you to deploy several services on your network with docker containers, you just have to pick the one you want and stick them together !
+SSL enabled & disabled version
+
+This project allow you to deploy several services on a server with docker containers, you just have to pick the one you want and stick them together !
+
+Thanks to SmartHomeBeginner for his well detailed tutorial ! https://www.smarthomebeginner.com/docker-home-media-server-2018-basic
+
 
 ############## My configuration ##############
 
@@ -16,6 +21,10 @@ Case : XXX
 Disks : 120G Kingston SSD (OS), 2x4Tb Red Barracuda Drives (Medias) 2x1Tb Green Barracuda Drives (Important Stuff/Configs/RAID 1 MIRROR)
 
 ##############################################
+
+
+/!\ Important /!\
+If you plan to make a SSL enabled server, you need a domain name migrated to cloudflare to be more convenient
 
 1- Create a bootable USB Stick for your server with your favorite OS
 
@@ -123,66 +132,258 @@ List of the official supported services :
 
 5- Global docker-compose rules
 
+XXX EXPLAIN WHAT TO DO WITH SERVICES
 
 
-
-
-
-
-
+docker-compose.yml
+<code>
 #Reference: https://www.smarthomebeginner.com/docker-home-media-server-2018-basic
 #Requirement: Set environmental variables: WORKDIR, PUID, PGID, MYSQL_ROOT_PASSWORD, and TZ as explained in the reference.
-#/media/raid = ${WORKDIR}
+#/Docker/Services = ${WORKDIR}
 #     |
 #/services_directories
 
 version: "3.3"
+services:
+
+######### FRONTENDS ##########
+
+#Portainer - A WebUI for Containers
+  portainer:
+    image: portainer/portainer:latest
+    hostname: portainer
+    container_name: portainer
+    restart: unless-stopped
+    command: -H unix:///var/run/docker.sock
+    ports:
+      - "8001:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${WORKDIR}/Portainer/:/data
+    environment:
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=portainer"
+      - "traefik.frontend.rule=Host:portainer.${DOMAINNAME}"
+      - "traefik.port=9000"
+      - "traefik.docker.network=reverse-proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=false"
+
+#Organizer - Unified HTPC/Home Server Web Interface
+  organizr:
+    container_name: organizr
+    hostname: organizr
+    restart: unless-stopped
+    image: lsiocommunity/organizr:latest
+    volumes:
+      - ${WORKDIR}/Organizr:/config
+    ports:
+      - "8002:80"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=organizr"
+      - "traefik.frontend.rule=Host:organizr.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=reverse-proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=false"
+
+#Nextcloud - Your own cloud storage
+  nextcloud:
+    hostname: nextcloud
+    container_name: nextcloud
+    image: nextcloud
+    restart: unless-stopped
+    ports:
+      - 8003:80
+    links:
+      - mariadb:db
+    volumes:
+      - ${WORKDIR}/Nextcloud:/var/www/html
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=nextcloud"
+      - "traefik.frontend.rule=Host:nextcloud.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=reverse-proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=false"
+
+#Phpmyadmin - A WebUI for your MariaDB database
+  phpmyadmin:
+    hostname: phpmyadmin
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin:latest
+    restart: unless-stopped
+    links:
+      - mariadb:db
+    ports:
+      - "8004:80"
+    environment:
+      - PMA_HOST=mariadb
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=pma"
+      - "traefik.frontend.rule=Host:pma.${DOMAINNAME}"
+      - "traefik.port=80"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=false"
+
+#Tautulli (aka PlexPy) – Monitoring Plex Usage
+  tautulli:
+    container_name: tautulli
+    hostname: tautulli
+    restart: unless-stopped
+    image: tautulli/tautulli
+    volumes:
+      - ${WORKDIR}/Tautulli:/config
+      - ${WORKDIR}/Plex/config/Library/Application Support/Plex Media Server/Logs:/logs:ro
+    ports:
+      - "8005:8181"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=tautulli"
+      - "traefik.frontend.rule=Host:tautulli.${DOMAINNAME}"
+      - "traefik.port=8181"
+      - "traefik.docker.network=reverse-proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      - "traefik.frontend.headers.frameDeny=false"
+
+#PLEX
+
+
+######### FRONTENDS ##########
+
+# Version 1.7 is important, traefik keeps restarting on newest versions
+  traefik:
+      hostname: traefik
+      image: traefik:v1.7
+      container_name: traefik
+      restart: always
+      domainname: ${DOMAINNAME}
+      networks:
+        - default
+        - reverse-proxy
+      ports:
+        - "80:80"
+        - "443:443"
+        - "8006:8080"
+      environment:
+        - CF_API_EMAIL=${CLOUDFLARE_EMAIL}
+        - CF_API_KEY=${CLOUDFLARE_API_KEY}
+      labels:
+        - "traefik.enable=true"
+        - "traefik.backend=traefik"
+        - "traefik.frontend.rule=Host:traefik.${DOMAINNAME}"
+        - "traefik.port=8080"
+        - "traefik.docker.network=traefik_proxy"
+        - "traefik.frontend.headers.SSLRedirect=true"
+        - "traefik.frontend.headers.STSSeconds=315360000"
+        - "traefik.frontend.headers.browserXSSFilter=true"
+        - "traefik.frontend.headers.contentTypeNosniff=true"
+        - "traefik.frontend.headers.forceSTSHeader=true"
+        - "traefik.frontend.headers.SSLHost=example.com"
+        - "traefik.frontend.headers.STSIncludeSubdomains=true"
+        - "traefik.frontend.headers.STSPreload=true"
+        - "traefik.frontend.headers.frameDeny=false"
+        - "traefik.frontend.auth.basic.users=${HTTP_USERNAME}:${HTTP_PASSWORD}"
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+        - ${WORKDIR}/traefik:/etc/traefik
+        - ${WORKDIR}/shared_data:/shared
+
+# MariaDB – Database Server for your Apps
+  mariadb:
+    image: linuxserver/mariadb:latest
+    container_name: mariadb
+    hostname: mariadb
+    volumes:
+        - ${WORKDIR}/Mariadb:/config
+    ports:
+      - target: 3306
+        published: 3306
+        protocol: tcp
+        mode: host
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+networks:
+  reverse-proxy:
+    external:
+      name: reverse-proxy
+  default:
+    driver: bridge
+
+
+# You can add watchtower to update your containers automaticaly, but be aware of traefik updates !
+#
+#
+# Watchtower - Automatic Update of Containers/Apps
+#  watchtower:
+#    container_name: watchtower
+#    hostname: watchtower
+#    restart: always
+#    image: v2tec/watchtower:latest
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    command: --schedule "0 0 4 * * *" --cleanup
+
+</code>
 
 
 
-######### UTILITIES ##########
-
-
-
-
-X- Get a domain name
-The easiest way to deploy these services is to use cloudflare
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-XX - Nextcloud troubleshooting
+TROUBLESHOOTING - Nextcloud reverse-proxy troubleshooting
 
 If you go to the global overview in your Nextcloud settings you may encounter the following message :
 
