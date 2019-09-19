@@ -9,8 +9,9 @@ This project allow you to deploy several services on a server with docker contai
 
 >Thanks to SmartHomeBeginner for his well detailed tutorial ! https://www.smarthomebeginner.com/docker-home-media-server-2018-basic
 
-``` 
-############## My configuration ##############
+```
+################################ My configuration  My configuration ################################
+
 
 OS : Ubuntu 18.04.3 LTS
 CPU : Intel i5 XXX w/ Stock cooler
@@ -20,16 +21,16 @@ Powerbrick : XXX
 Case : XXX
 Disks : 120G Kingston SSD (OS), 2x4Tb Red Barracuda Drives (Medias) 2x1Tb Green Barracuda Drives (Important Stuff/Configs/RAID 1 MIRROR)
 
-############################################## 
+####################################################################################################
 ```
 
 /!\ Important /!\
 If you plan to make a SSL enabled server, you need a domain name migrated to cloudflare to be more convenient
 
 ## 1- Create a bootable USB Stick for your server with your favorite OS
-
+```
 NOTE : I'M USING UBUNTU SERVER
-
+```
 Find your best 8G USB Stick
 
 Download the latest ISO image of Ubuntu on their official website :
@@ -69,23 +70,26 @@ CONFIG.FILES  Movies   Shows  Music
 ## 3- Update your packages and Install Docker
 
 Let's update the list of the available packets
+```
   sudo apt update
   sudo apt upgrade
-
+```
 Snap should be installed by default
 
 Now let's install docker
+```
   sudo snap install docker
   sudo apt-get install docker-compose
-
+```
 If snap is not installed
+```
   sudo apt update
   sudo apt install snapd
-
+```
 Good you now have a fresh up-to-date Ubuntu server with a docker daemon running !
 
 Try docker to check if he was installed correctly by running the hello-world image
-  docker run hello-world
+  ``docker run hello-world``
 
 ## 4- Define your environnement
 
@@ -99,7 +103,7 @@ If I put the following line in my environnement file "mypassword123=PASSWORD", m
 Now we need to edit your environnement file !
 
 Edit the /etc/environnement file and complete it with your informations
-
+```
 PUID=                    | The result of the "id" command
 PGID=                    | The result of the "id" command
 TZ=                      | Timezone, you can check your in the IANA TZ Database or following this link https://en.wikipedia.org/wiki/Tz_database
@@ -110,14 +114,14 @@ CLOUDFLARE_API_KEY=      | your cloudflare API Key
 DOMAINNAME=              | your domain name (If you have one)
 HTTP_USERNAME=           | your generic usernanme
 HTTP_PASSWORD=           | your generic password
-
+```
 
 ## 5- Select the services you want to run !
 
 The docker-compose with every services included can be downloaded on the GitHub project repository
 
 List of the official supported services :
-
+```
 ######### FRONTENDS ##########
    #Portainer - A WebUI for Containers
    #Organizer - Unified HTPC/Home Server Web Interface
@@ -129,7 +133,7 @@ List of the official supported services :
    #Traefik - A reverse-proxy/load balancer for your services
    #Watchtower - Automatic Updater for your Containers/Apps
    #MariaDB – Database Server for your Apps
-
+```
 ## 6- Global docker-compose rules
 
 XXX EXPLAIN WHAT TO DO WITH SERVICES
@@ -217,7 +221,7 @@ services:
     image: nextcloud
     restart: unless-stopped
     ports:
-      - 8003:80
+      - "8003:80"
     links:
       - mariadb:db
     volumes:
@@ -403,11 +407,12 @@ In order to do that you can edit your Nextcloud configuration file in your Nextc
 
 And add the following lines at the end of the configuration file :
 
+```
 'trusted_proxies' =>
  array (
    0 => 'YOUR.DOMAINNAME',
    1 => 'YOURSERVERPRIVATEIP',
    2 => 'localhost',
   ),
-
+```
 You can now restart your Nextcloud instance, the problem should be solved.
