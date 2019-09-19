@@ -38,11 +38,11 @@ Download the latest ISO image of Ubuntu on their official website, you have to c
 
 * Ubuntu Server : Command-line interface ONLY (You can download a graphical environnement afterwards)
 
-Official download page : https://ubuntu.com/#download
+Official download page : <https://ubuntu.com/#download>
 
 Now you have the image, you need a tool to make your USB stick bootable
 
-I personnaly love Balena Etcher : https://www.balena.io/etcher/ (It's open source :)
+I personnaly love Balena Etcher : <https://www.balena.io/etcher/> (It's open source :)
 
 Open your flashing program, select your USB, select your OS image and flash it !
 
