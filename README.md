@@ -1,4 +1,4 @@
-#d0wn
+# d0wn
 **d0wn - Docker OWN Server**
 
 >A personnal docker managed server w/SSL | Let's encrypt
@@ -26,7 +26,7 @@ Disks : 120G Kingston SSD (OS), 2x4Tb Red Barracuda Drives (Medias) 2x1Tb Green 
 /!\ Important /!\
 If you plan to make a SSL enabled server, you need a domain name migrated to cloudflare to be more convenient
 
-1- Create a bootable USB Stick for your server with your favorite OS
+##1- Create a bootable USB Stick for your server with your favorite OS
 
 NOTE : I'M USING UBUNTU SERVER
 
@@ -50,7 +50,7 @@ Open your flashing program, select your USB, select your OS image and flash it !
 Now your USB is ready we can install the OS on the server
 
 
-2- Install Ubuntu & making directory tree
+##2- Install Ubuntu & making directory tree
 
 Now you can connect your USB to your fresh server, power it up and spam your boot option button on the keyboard, usually F11, F12, ...
 
@@ -66,7 +66,7 @@ SERVICENAME  Medias_____________        Nextcloud           Other      ...
     |           |       |       |
 CONFIG.FILES  Movies   Shows  Music
 ```
-3- Update your packages and Install Docker
+##3- Update your packages and Install Docker
 
 Let's update the list of the available packets
   sudo apt update
@@ -87,7 +87,7 @@ Good you now have a fresh up-to-date Ubuntu server with a docker daemon running 
 Try docker to check if he was installed correctly by running the hello-world image
   docker run hello-world
 
-4- Define your environnement
+##4- Define your environnement
 
 What's gonna make you server YOUR server is your environnement : YOUR own IP, YOUR passwords, ...
 
@@ -112,7 +112,7 @@ HTTP_USERNAME=           | your generic usernanme
 HTTP_PASSWORD=           | your generic password
 
 
-5- Select the services you want to run !
+##5- Select the services you want to run !
 
 The docker-compose with every services included can be downloaded on the GitHub project repository
 
@@ -130,7 +130,7 @@ List of the official supported services :
    #Watchtower - Automatic Updater for your Containers/Apps
    #MariaDB – Database Server for your Apps
 
-5- Global docker-compose rules
+##6- Global docker-compose rules
 
 XXX EXPLAIN WHAT TO DO WITH SERVICES
 
