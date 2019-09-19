@@ -1,15 +1,15 @@
-# d0wn
-d0wn - Docker OWN Server
+#d0wn
+**d0wn - Docker OWN Server**
 
-A personnal docker managed server w/SSL | Let's encrypt
+>A personnal docker managed server w/SSL | Let's encrypt
 
 SSL enabled & disabled version
 
 This project allow you to deploy several services on a server with docker containers, you just have to pick the one you want and stick them together !
 
-Thanks to SmartHomeBeginner for his well detailed tutorial ! https://www.smarthomebeginner.com/docker-home-media-server-2018-basic
+>Thanks to SmartHomeBeginner for his well detailed tutorial ! https://www.smarthomebeginner.com/docker-home-media-server-2018-basic
 
-
+```
 ############## My configuration ##############
 
 OS : Ubuntu 18.04.3 LTS
@@ -21,7 +21,7 @@ Case : XXX
 Disks : 120G Kingston SSD (OS), 2x4Tb Red Barracuda Drives (Medias) 2x1Tb Green Barracuda Drives (Important Stuff/Configs/RAID 1 MIRROR)
 
 ##############################################
-
+```
 
 /!\ Important /!\
 If you plan to make a SSL enabled server, you need a domain name migrated to cloudflare to be more convenient
