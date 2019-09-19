@@ -9,7 +9,8 @@ This project allow you to deploy several services on a server with docker contai
 
 >Thanks to SmartHomeBeginner for his well detailed tutorial ! https://www.smarthomebeginner.com/docker-home-media-server-2018-basic
 
-``` ############## My configuration ##############
+``` 
+############## My configuration ##############
 
 OS : Ubuntu 18.04.3 LTS
 CPU : Intel i5 XXX w/ Stock cooler
@@ -19,7 +20,8 @@ Powerbrick : XXX
 Case : XXX
 Disks : 120G Kingston SSD (OS), 2x4Tb Red Barracuda Drives (Medias) 2x1Tb Green Barracuda Drives (Important Stuff/Configs/RAID 1 MIRROR)
 
-############################################## ```
+############################################## 
+```
 
 /!\ Important /!\
 If you plan to make a SSL enabled server, you need a domain name migrated to cloudflare to be more convenient
