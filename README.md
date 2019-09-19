@@ -68,7 +68,9 @@ CONFIG.FILES  Movies   Shows  Music
 
 
 ```
-You can skip step 3 & 4 by executing the **Auto-folder-build.bash** script that I made, it will build the basic repository structure and ask for your environnement variables !
+ ############################################################################################
+/!\       You can skip step 3 & 4 by executing the **Auto-folder-build.bash** script that I made, it will build the basic repository structure and ask for your environnement variables       /!\    
+ ###########################################################################################
 ```
 
 
