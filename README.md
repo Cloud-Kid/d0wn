@@ -12,7 +12,6 @@ This project allow you to deploy several services on a server with docker contai
 ```
 ################################ My configuration  My configuration ################################
 
-
 OS : Ubuntu 18.04.3 LTS
 CPU : Intel i5 XXX w/ Stock cooler
 Motherboard : Mortar Arctic XXX
@@ -153,7 +152,7 @@ version: "3.3"
 services:
 
 ######### FRONTENDS ##########
-
+#-------------------------------------------------------------------------------
 #Portainer - A WebUI for Containers
   portainer:
     image: portainer/portainer:latest
@@ -183,7 +182,8 @@ services:
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=false"
-
+      - "com.centurylinklabs.watchtower.enable=true"
+#-------------------------------------------------------------------------------
 #Organizer - Unified HTPC/Home Server Web Interface
   organizr:
     container_name: organizr
@@ -213,7 +213,8 @@ services:
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=false"
-
+      - "com.centurylinklabs.watchtower.enable=true"
+#-------------------------------------------------------------------------------
 #Nextcloud - Your own cloud storage
   nextcloud:
     hostname: nextcloud
@@ -241,7 +242,8 @@ services:
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=false"
-
+      - "com.centurylinklabs.watchtower.enable=true"
+#-------------------------------------------------------------------------------
 #Phpmyadmin - A WebUI for your MariaDB database
   phpmyadmin:
     hostname: phpmyadmin
@@ -270,7 +272,8 @@ services:
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=false"
-
+      - "com.centurylinklabs.watchtower.enable=true"
+#-------------------------------------------------------------------------------
 #Tautulli (aka PlexPy) – Monitoring Plex Usage
   tautulli:
     container_name: tautulli
@@ -301,11 +304,13 @@ services:
       - "traefik.frontend.headers.STSIncludeSubdomains=true"
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=false"
+      - "com.centurylinklabs.watchtower.enable=true"
+#-------------------------------------------------------------------------------
 
 #PLEX
 
 
-######### FRONTENDS ##########
+######### BACKENDS ##########
 
 # Version 1.7 is important, traefik keeps restarting on newest versions
   traefik:
@@ -344,7 +349,7 @@ services:
         - /var/run/docker.sock:/var/run/docker.sock:ro
         - ${WORKDIR}/traefik:/etc/traefik
         - ${WORKDIR}/shared_data:/shared
-
+#-------------------------------------------------------------------------------
 # MariaDB – Database Server for your Apps
   mariadb:
     image: linuxserver/mariadb:latest
@@ -363,7 +368,9 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+#-------------------------------------------------------------------------------
 networks:
   reverse-proxy:
     external:
@@ -371,19 +378,28 @@ networks:
   default:
     driver: bridge
 
-
-# You can add watchtower to update your containers automaticaly, but be aware of traefik updates !
-#
-#
 # Watchtower - Automatic Update of Containers/Apps
-#  watchtower:
-#    container_name: watchtower
-#    hostname: watchtower
-#    restart: always
-#    image: v2tec/watchtower:latest
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock
-#    command: --schedule "0 0 4 * * *" --cleanup
+  watchtower:
+    container_name: watchtower
+    hostname: watchtower
+    restart: always
+    image: v2tec/watchtower:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --schedule "0 0 4 * * *" --cleanup
+
+ You can add watchtower to update your containers automaticaly, but be aware of traefik updates !
+
+
+ Watchtower - Automatic Update of Containers/Apps
+  watchtower:
+    container_name: watchtower
+    hostname: watchtower
+    restart: always
+    image: v2tec/watchtower:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --schedule "0 0 4 * * *" --cleanup
 ```
 
 
