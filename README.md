@@ -57,7 +57,7 @@ Now you can connect your USB to your fresh server, power it up and spam your boo
 Now you can see the Ubuntu installer menu select the normal install and follow the instructions, it's pretty straightforward ;)
 
 After the installation of Ubuntu you need to create the global organisation of your folders and services, you can create your folder tree following this plan :
-
+```
 ~/Docker_______
     |         |
 Services    Storage_________ Data______________________________________
@@ -65,7 +65,7 @@ Services    Storage_________ Data______________________________________
 SERVICENAME  Medias_____________        Nextcloud           Other      ...
     |           |       |       |
 CONFIG.FILES  Movies   Shows  Music
-
+```
 3- Update your packages and Install Docker
 
 Let's update the list of the available packets
