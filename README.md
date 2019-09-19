@@ -136,7 +136,8 @@ XXX EXPLAIN WHAT TO DO WITH SERVICES
 
 
 docker-compose.yml
-'
+
+`
 #Reference: https://www.smarthomebeginner.com/docker-home-media-server-2018-basic
 #Requirement: Set environmental variables: WORKDIR, PUID, PGID, MYSQL_ROOT_PASSWORD, and TZ as explained in the reference.
 #/Docker/Services = ${WORKDIR}
@@ -379,8 +380,7 @@ networks:
 #    volumes:
 #      - /var/run/docker.sock:/var/run/docker.sock
 #    command: --schedule "0 0 4 * * *" --cleanup
-'
-</code>
+`
 
 
 
