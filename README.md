@@ -32,12 +32,11 @@ NOTE : I'M USING UBUNTU SERVER
 ```
 Find your best 8G USB Stick
 
-Download the latest ISO image of Ubuntu on their official website :
+Download the latest ISO image of Ubuntu on their official website, you have to choose between two versions.
 
-Choose one :
-Ubuntu Desktop : Ubuntu w/ Graphical interface - Use this one if you plan to use a screen on your server
+* Ubuntu Desktop : Ubuntu w/ Graphical interface - Use this one if you plan to use a screen on your server
 
-Ubuntu Server : Command-line interface ONLY (You can download a graphical environnement afterwards)
+* Ubuntu Server : Command-line interface ONLY (You can download a graphical environnement afterwards)
 
 Official download page : https://ubuntu.com/#download
 
