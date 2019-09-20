@@ -1,7 +1,7 @@
 # d0wn
 **d0wn - Docker OWN Server**
 
->A personnal docker managed server w/SSL | Let's encrypt
+>A personnal docker managed server behind a traefik rverse proxy w/SSL | Let's encrypt
 
 SSL enabled & disabled version
 
@@ -9,8 +9,18 @@ This project allow you to deploy several services on a server with docker contai
 
 >Thanks to SmartHomeBeginner for his well detailed tutorial ! https://www.smarthomebeginner.com/docker-home-media-server-2018-basic
 
+## How does it works ?
+
+The goal here is to make home server creation easy, secure & accessible for all.
+
+EASY -> By using docker each service is constitued of one or two container maximum, the deployement of a container is so easy it can be done with one command-line
+SECURE -> With traefik reverse-proxy and docker, we can use SSL to encrypt every communication with our server from the internet !
+ACCESSIBLE -> The goal of this project is to automate this long process of creation with a script, one line to rule them all !
+
+There is a lot more of benefits here but I want to make the long story short.
+
 ```
-################################ My configuration  My configuration ################################
+######################################### My configuration #########################################
 
 OS : Ubuntu 18.04.3 LTS
 CPU : Intel i5 XXX w/ Stock cooler
@@ -18,13 +28,19 @@ Motherboard : Mortar Arctic XXX
 RAM : 8Gb Corsair Value Select
 Powerbrick : XXX
 Case : XXX
-Disks : 120G Kingston SSD (OS), 2x4Tb Red Barracuda Drives (Medias) 2x1Tb Green Barracuda Drives (Important Stuff/Configs/RAID 1 MIRROR)
+Disks :
+- 120G Kingston SSD (OS)
+- 2x4Tb Red Barracuda Drives (Medias)
+- 2x1Tb Green Barracuda Drives (Important Stuff/Configs/RAID 1 MIRROR)
 
 ####################################################################################################
 ```
 
 /!\ Important /!\
-If you plan to make a SSL enabled server, you need a domain name migrated to cloudflare to be more convenient
+
+Prerequisites :
+If you plan to make a SSL enabled server, you need to aleready have a domain name or get one and preferably move your DNS to cloudflare because it's more convenient (API Support, ...)
+you also need to redirect ports 80, 443 & 8000 from the router to your server. And of course, create a DNS record for your domain name to your router public IP
 
 ## 1- Create a bootable USB Stick for your server with your favorite OS
 ```
@@ -65,7 +81,6 @@ SERVICENAME  Medias_____________        Nextcloud           Other      ...
     |           |       |       |
 CONFIG.FILES  Movies   Shows  Music
 ```
-
 
 ```
  ############################################################################################
@@ -109,7 +124,7 @@ If I put the following line in my environnement file "mypassword123=PASSWORD", m
 
 Now we need to edit your environnement file !
 
-Edit the /etc/environnement file and complete it with your informations
+Edit the /etc/environnement file and complete it with your informations (You don't need to do that if you used my script)
 ```
 PUID=                    | The result of the "id" command
 PGID=                    | The result of the "id" command
@@ -125,7 +140,7 @@ HTTP_PASSWORD=           | your generic password
 
 ## 5- Select the services you want to run !
 
-The docker-compose with every services included can be downloaded on the GitHub project repository
+The docker-compose file with every services included can be downloaded on the GitHub project repository
 
 List of the official supported services :
 ```
@@ -134,6 +149,7 @@ List of the official supported services :
    #Organizer - Unified HTPC/Home Server Web Interface
    #Nextcloud - Your own cloud storage
    #Phpmyadmin - A WebUI for your MariaDB database
+   #Plex - WebUI to stream media
    #Tautulli (aka PlexPy) – Monitoring Plex Usage
 
 ######### BACKENDS ##########
@@ -143,15 +159,18 @@ List of the official supported services :
 ```
 ## 6- Global docker-compose rules
 
-XXX EXPLAIN WHAT TO DO WITH SERVICES
+This file may scare you a first but it fact it's really easy ! It just automate de deployement of containers and explain the way docker have deploy them.
 
+So, to select wich services you want, you just have to delete the one you don't want between two "#----------------------" statement.
+
+READ THE COMMENTS IN THE DOCKER-COMPOSE !
 
 docker-compose.yml
 
 ```yaml
 #Reference: https://www.smarthomebeginner.com/docker-home-media-server-2018-basic
 #Requirement: Set environmental variables: WORKDIR, PUID, PGID, MYSQL_ROOT_PASSWORD, and TZ as explained in the reference.
-#/Docker/Services = ${WORKDIR}
+#~/Docker/Services = ${WORKDIR}
 #     |
 #/services_directories
 
@@ -159,6 +178,44 @@ docker-compose.yml
 version: "3.3"
 services:
 
+########## ROUTING /!\ Mandatory /!\ ###########
+# Version 1.7 is important, traefik keeps restarting on newest versions
+  traefik:
+      hostname: traefik
+      image: traefik:v1.7.16
+      container_name: traefik
+      restart: always
+      domainname: ${DOMAINNAME}
+      networks:
+        - default
+        - reverse-proxy
+      ports:
+        - "80:80"
+        - "443:443"
+        - "8000:8080"
+      environment:
+        - CF_API_EMAIL=${CLOUDFLARE_EMAIL}
+        - CF_API_KEY=${CLOUDFLARE_API_KEY}
+      labels:
+        - "traefik.enable=true"
+        - "traefik.backend=traefik"
+        - "traefik.frontend.rule=Host:traefik.${DOMAINNAME}"
+        - "traefik.port=8080"
+        - "traefik.docker.network=traefik_proxy"
+        - "traefik.frontend.headers.SSLRedirect=true"
+        - "traefik.frontend.headers.STSSeconds=315360000"
+        - "traefik.frontend.headers.browserXSSFilter=true"
+        - "traefik.frontend.headers.contentTypeNosniff=true"
+        - "traefik.frontend.headers.forceSTSHeader=true"
+        - "traefik.frontend.headers.SSLHost=example.com"
+        - "traefik.frontend.headers.STSIncludeSubdomains=true"
+        - "traefik.frontend.headers.STSPreload=true"
+        - "traefik.frontend.headers.frameDeny=false"
+        - "traefik.frontend.auth.basic.users=${HTTP_USERNAME}:${HTTP_PASSWORD}"
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+        - ${WORKDIR}/traefik:/etc/traefik
+#-------------------------------------------------------------------------------
 ######### FRONTENDS ##########
 #-------------------------------------------------------------------------------
 #Portainer - A WebUI for Containers
@@ -223,7 +280,7 @@ services:
       - "traefik.frontend.headers.frameDeny=false"
       - "com.centurylinklabs.watchtower.enable=true"
 #-------------------------------------------------------------------------------
-#Nextcloud - Your own cloud storage
+#Nextcloud - Your own cloud storage (Needs Mariadb backend)
   nextcloud:
     hostname: nextcloud
     container_name: nextcloud
@@ -252,7 +309,7 @@ services:
       - "traefik.frontend.headers.frameDeny=false"
       - "com.centurylinklabs.watchtower.enable=true"
 #-------------------------------------------------------------------------------
-#Phpmyadmin - A WebUI for your MariaDB database
+#Phpmyadmin - A WebUI for your MariaDB database (Optionnal)
   phpmyadmin:
     hostname: phpmyadmin
     container_name: phpmyadmin
@@ -281,6 +338,51 @@ services:
       - "traefik.frontend.headers.STSPreload=true"
       - "traefik.frontend.headers.frameDeny=false"
       - "com.centurylinklabs.watchtower.enable=true"
+#-------------------------------------------------------------------------------
+#PlexMediaServer - A WebUI for streaming all of your media locally or remotly
+      plexms:
+          container_name: plexms
+          restart: unless-stopped
+          image: plexinc/pms-docker
+          volumes:
+            - ${WORKDIR}/plexms:/config
+            - ${WORKDIR}/Downloads/plex_tmp:/transcode
+            - ~/Docker/Storage/Medias/:/media
+          ports:
+            - "32400:32400/tcp"
+            - "3005:3005/tcp"
+            - "8324:8324/tcp"
+            - "32469:32469/tcp"
+            - "1900:1900/udp"
+            - "32410:32410/udp"
+            - "32412:32412/udp"
+            - "32413:32413/udp"
+            - "32414:32414/udp"
+          environment:
+            - TZ=${TZ}
+            - HOSTNAME="Docker Plex"
+            - PLEX_CLAIM="claim-YYYYYYYYY"
+            - PLEX_UID=${PUID}
+            - PLEX_GID=${PGID}
+            - ADVERTISE_IP="http://SERVER-IP:32400/"
+          networks:
+            - traefik_proxy
+          labels:
+            - "traefik.enable=true"
+            - "traefik.backend=plexms"
+            - "traefik.frontend.rule=Host:plex.${DOMAINNAME}"
+            - "traefik.port=32400"
+            - "traefik.protocol=http"
+            - "traefik.docker.network=traefik_proxy"
+            - "traefik.frontend.headers.SSLRedirect=true"
+            - "traefik.frontend.headers.STSSeconds=315360000"
+            - "traefik.frontend.headers.browserXSSFilter=true"
+            - "traefik.frontend.headers.contentTypeNosniff=true"
+            - "traefik.frontend.headers.forceSTSHeader=true"
+            - "traefik.frontend.headers.SSLHost=example.com"
+            - "traefik.frontend.headers.STSIncludeSubdomains=true"
+            - "traefik.frontend.headers.STSPreload=true"
+            - "traefik.frontend.headers.frameDeny=true"
 #-------------------------------------------------------------------------------
 #Tautulli (aka PlexPy) – Monitoring Plex Usage
   tautulli:
@@ -314,51 +416,9 @@ services:
       - "traefik.frontend.headers.frameDeny=false"
       - "com.centurylinklabs.watchtower.enable=true"
 #-------------------------------------------------------------------------------
-
-#PLEX
-
-
 ######### BACKENDS ##########
-
-# Version 1.7 is important, traefik keeps restarting on newest versions
-  traefik:
-      hostname: traefik
-      image: traefik:v1.7
-      container_name: traefik
-      restart: always
-      domainname: ${DOMAINNAME}
-      networks:
-        - default
-        - reverse-proxy
-      ports:
-        - "80:80"
-        - "443:443"
-        - "8006:8080"
-      environment:
-        - CF_API_EMAIL=${CLOUDFLARE_EMAIL}
-        - CF_API_KEY=${CLOUDFLARE_API_KEY}
-      labels:
-        - "traefik.enable=true"
-        - "traefik.backend=traefik"
-        - "traefik.frontend.rule=Host:traefik.${DOMAINNAME}"
-        - "traefik.port=8080"
-        - "traefik.docker.network=traefik_proxy"
-        - "traefik.frontend.headers.SSLRedirect=true"
-        - "traefik.frontend.headers.STSSeconds=315360000"
-        - "traefik.frontend.headers.browserXSSFilter=true"
-        - "traefik.frontend.headers.contentTypeNosniff=true"
-        - "traefik.frontend.headers.forceSTSHeader=true"
-        - "traefik.frontend.headers.SSLHost=example.com"
-        - "traefik.frontend.headers.STSIncludeSubdomains=true"
-        - "traefik.frontend.headers.STSPreload=true"
-        - "traefik.frontend.headers.frameDeny=false"
-        - "traefik.frontend.auth.basic.users=${HTTP_USERNAME}:${HTTP_PASSWORD}"
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock:ro
-        - ${WORKDIR}/traefik:/etc/traefik
-        - ${WORKDIR}/shared_data:/shared
 #-------------------------------------------------------------------------------
-# MariaDB – Database Server for your Apps
+# MariaDB – Database Server for your Apps (Used by Nextcloud)
   mariadb:
     image: linuxserver/mariadb:latest
     container_name: mariadb
@@ -379,13 +439,6 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 #-------------------------------------------------------------------------------
-networks:
-  reverse-proxy:
-    external:
-      name: reverse-proxy
-  default:
-    driver: bridge
-
 # Watchtower - Automatic Update of Containers/Apps
   watchtower:
     container_name: watchtower
@@ -395,10 +448,7 @@ networks:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --schedule "0 0 4 * * *" --cleanup
-
- You can add watchtower to update your containers automaticaly, but be aware of traefik updates !
-
-
+#-------------------------------------------------------------------------------
  Watchtower - Automatic Update of Containers/Apps
   watchtower:
     container_name: watchtower
@@ -408,6 +458,14 @@ networks:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --schedule "0 0 4 * * *" --cleanup
+#-------------------------------------------------------------------------------
+#Declaration for the revrse proxy network
+    networks:
+      reverse-proxy:
+        external:
+          name: reverse-proxy
+      default:
+        driver: bridge
 ```
 
 
